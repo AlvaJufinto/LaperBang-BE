@@ -28,6 +28,14 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/requests", requestRoutes);
 app.use("/api/v1/vendors", vendorRoutes);
 app.use("/api/v1/clusters", clusterRoutes);
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+	"/docs",
+	swaggerUi.serve,
+	swaggerUi.setup(swaggerSpec, {
+		swaggerOptions: {
+			url: "/swagger.json",
+		},
+	}),
+);
 
 export default app;

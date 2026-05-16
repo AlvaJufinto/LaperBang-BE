@@ -8,8 +8,18 @@
 	],
 	"routes": [
 		{
+			"src": "/docs/(.*)",
+			"dest": "/server.js"
+		},
+		{
 			"src": "/(.*)",
-			"dest": "server.js"
+			"dest": "/server.js"
+		}
+	],
+	"rewrites": [
+		{
+			"source": "/docs/(.*)",
+			"destination": "/server.js"
 		}
 	],
 	"crons": [

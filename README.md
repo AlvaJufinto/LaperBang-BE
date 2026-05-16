@@ -1,10 +1,12 @@
 <!-- @format -->
 
-# LaperBang API Docs
+# LaperBang API
+
+LaperBang Backend API Documentation
 
 ---
 
-## Base URL
+## Server
 
 ```
 http://localhost:3000
@@ -12,20 +14,15 @@ http://localhost:3000
 
 ---
 
-## Auth
+# Auth
 
-### Google Login
+## Google Login
 
-**Endpoint**
+**POST** `/api/v1/auth/google`
 
-```
-POST /api/v1/auth/google
-```
-
-**Description**
 Login atau register user menggunakan Google ID Token.
 
-**Request Body**
+### Request Body
 
 ```json
 {
@@ -33,7 +30,9 @@ Login atau register user menggunakan Google ID Token.
 }
 ```
 
-**Success Response (200)**
+### Responses
+
+**200 - Success**
 
 ```json
 {
@@ -45,27 +44,37 @@ Login atau register user menggunakan Google ID Token.
 }
 ```
 
-**Error Responses**
+**400 - Bad Request**
 
-- 400: Missing credential / invalid token
-- 500: Server error
+```json
+{
+	"success": false,
+	"error": "missing or invalid credential"
+}
+```
+
+**500 - Server Error**
+
+```json
+{
+	"success": false,
+	"error": "internal server error"
+}
+```
 
 ---
 
-## Clusters
+# Clusters
 
-### Run Clustering Process
+## Run Clustering
 
-**Endpoint**
+**POST** `/api/v1/clusters/run`
 
-```
-POST /api/v1/clusters/run
-```
-
-**Description**
 Menjalankan proses clustering demand untuk membentuk hotspot.
 
-**Response (200)**
+### Responses
+
+**200 - Success**
 
 ```json
 {
@@ -74,7 +83,7 @@ Menjalankan proses clustering demand untuk membentuk hotspot.
 }
 ```
 
-**Error Response (500)**
+**500 - Error**
 
 ```json
 {
@@ -85,88 +94,219 @@ Menjalankan proses clustering demand untuk membentuk hotspot.
 
 ---
 
-## Requests
+# Requests
 
-### Create Request
+## Create Request
 
-**Endpoint**
+**POST** `/api/v1/requests`
 
+User membuat request ke vendor dengan lokasi realtime.
+
+### Request Body
+
+```json
+{
+	"vendor_id": "uuid-vendor-id",
+	"lat": -6.2,
+	"lng": 106.816666
+}
 ```
-POST /api/v1/requests
+
+### Responses
+
+**200 - Created**
+
+```json
+{
+	"success": true,
+	"data": {}
+}
 ```
 
-**Description**
-Membuat request dari user ke vendor.
+**400 - Validation Error**
 
-**Note**: payload detail belum didefinisikan.
+```json
+{
+	"success": false,
+	"error": "Missing fields or vendor unavailable"
+}
+```
+
+**500 - Server Error**
+
+```json
+{
+	"success": false,
+	"error": "internal server error"
+}
+```
 
 ---
 
-## Vendors
+# Vendors
 
-### Update Live Location
+## Update Live Location
 
-**Endpoint**
+**PATCH** `/api/v1/vendors/location`
 
+Update posisi real-time vendor.
+
+### Request Body
+
+```json
+{
+	"lat": -6.2,
+	"lng": 106.816666
+}
 ```
-PATCH /api/v1/vendors/location
+
+### Responses
+
+**200 - Success**
+
+```json
+{
+	"success": true,
+	"message": "Location updated"
+}
 ```
 
-**Description**
-Update posisi real-time vendor untuk tracking.
+**400 - Invalid Input**
+
+```json
+{
+	"success": false,
+	"error": "invalid coordinates"
+}
+```
+
+**500 - Server Error**
+
+```json
+{
+	"success": false,
+	"error": "internal server error"
+}
+```
 
 ---
 
-### Get Nearby Vendors
+## Get Nearby Vendors
 
-**Endpoint**
+**GET** `/api/v1/vendors/nearby`
 
-```
-GET /api/v1/vendors/nearby
-```
-
-**Description**
 Mengambil vendor terdekat berdasarkan lokasi user.
 
-**Note**: kemungkinan membutuhkan lat/lng query params.
+### Query Parameters
+
+- `lat` (required): number
+- `lng` (required): number
+- `radius` (optional): number (meter, default 5000)
+
+### Example
+
+```
+/api/v1/vendors/nearby?lat=-6.2&lng=106.8&radius=5000
+```
+
+### Responses
+
+**200 - Success**
+
+```json
+{
+	"success": true,
+	"data": [{}]
+}
+```
+
+**500 - Server Error**
+
+```json
+{
+	"success": false,
+	"error": "internal server error"
+}
+```
 
 ---
 
-### Update Vendor Status
+## Update Vendor Status
 
-**Endpoint**
+**PATCH** `/api/v1/vendors/status`
 
+Mengubah status vendor.
+
+### Request Body
+
+```json
+{
+	"status": "active"
+}
 ```
-PATCH /api/v1/vendors/status
+
+### Valid Status Example
+
+- active
+- inactive
+- busy
+- offline
+
+### Responses
+
+**200 - Success**
+
+```json
+{
+	"success": true,
+	"message": "Status updated"
+}
 ```
 
-**Description**
-Mengubah status vendor (aktif / nonaktif / available / busy).
+**400 - Bad Request**
+
+```json
+{
+	"success": false,
+	"error": "missing status"
+}
+```
+
+**500 - Server Error**
+
+```json
+{
+	"success": false,
+	"error": "internal server error"
+}
+```
 
 ---
 
-## System Flow
+# System Flow
 
 1. User login via Google OAuth
-2. User melihat vendor terdekat
-3. User membuat request ke vendor
-4. Request masuk ke aggregation system
+2. User fetch nearby vendors
+3. User sends request to vendor
+4. Request masuk ke aggregation layer
 5. System menjalankan clustering demand
-6. Hotspot terbentuk dari demand
+6. Hotspot terbentuk
 7. Vendor diarahkan ke hotspot
-8. Vendor update lokasi secara real-time
+8. Vendor update lokasi real-time
 
 ---
 
-## Notes
+# Architecture Notes
 
-- Endpoint `/requests` belum memiliki detail payload
-- Sistem berbasis real-time location tracking
-- Cocok untuk event-driven + geospatial architecture
-- Disarankan integrasi WebSocket (Pusher / Socket.io)
+- Real-time location tracking required (Pusher)
+- Geospatial query required for nearby vendors
+- Clustering likely batch or event-driven job
+- Request system acts as demand aggregator
 
 ---
 
-## Future Improvements
+# Future Improvements
 
-- Real-time event broadcasting
+- Add auth middleware documentation
+- Add request schema validation detail
+- Add Pusher event spec

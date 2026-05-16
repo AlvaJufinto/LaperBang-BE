@@ -10,7 +10,6 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 export const googleLoginController = async (req, res) => {
 	try {
 		const { credential } = req.body;
-		// credential = Google ID token dari frontend
 
 		if (!credential) {
 			return res.status(400).json({
@@ -19,7 +18,13 @@ export const googleLoginController = async (req, res) => {
 			});
 		}
 
-		// verify token dari Google
+		if (!process.env.JWT_SECRET || !process.env.GOOGLE_CLIENT_ID) {
+			return res.status(500).json({
+				success: false,
+				error: "Server misconfigured",
+			});
+		}
+
 		const ticket = await client.verifyIdToken({
 			idToken: credential,
 			audience: process.env.GOOGLE_CLIENT_ID,
@@ -27,32 +32,42 @@ export const googleLoginController = async (req, res) => {
 
 		const payload = ticket.getPayload();
 
-		const { sub, email, name, picture } = payload;
+		if (!payload?.email) {
+			return res.status(400).json({
+				success: false,
+				error: "Invalid Google token",
+			});
+		}
 
-		// cek / insert user
-		let { data: user } = await supabase
+		const { email, name } = payload;
+
+		let { data: user, error } = await supabase
 			.from("users")
 			.select("*")
 			.eq("email", email)
-			.single();
+			.maybeSingle();
+
+		if (error) throw error;
 
 		if (!user) {
-			const { data: newUser } = await supabase
+			const { data: newUser, error: insertError } = await supabase
 				.from("users")
-				.insert([
+				.upsert(
 					{
-						name,
-						role: "consumer", // default role
 						email,
+						name,
+						role: "consumer",
 					},
-				])
+					{ onConflict: "email" },
+				)
 				.select()
 				.single();
+
+			if (insertError) throw insertError;
 
 			user = newUser;
 		}
 
-		// buat JWT
 		const token = jwt.sign(
 			{
 				user_id: user.id,
@@ -65,10 +80,7 @@ export const googleLoginController = async (req, res) => {
 
 		return res.json({
 			success: true,
-			data: {
-				user,
-				token,
-			},
+			data: { user, token },
 		});
 	} catch (err) {
 		return res.status(500).json({

@@ -40,10 +40,25 @@ export const updateVendorLocationController = async (req, res) => {
 export const getNearbyVendorsController = async (req, res) => {
 	try {
 		const { lat, lng, radius } = req.query;
+		if (!lat || !lng) {
+			return res.status(400).json({
+				success: false,
+				error: "Missing coordinates",
+			});
+		}
 
+		const latNum = Number(lat);
+		const lngNum = Number(lng);
+
+		if (Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+			return res.status(400).json({
+				success: false,
+				error: "Invalid coordinates",
+			});
+		}
 		const vendors = await getNearbyVendors({
-			lat: Number(lat),
-			lng: Number(lng),
+			lat: latNum,
+			lng: lngNum,
 			radius: Number(radius) || 5000,
 		});
 

@@ -1,5 +1,6 @@
 /** @format */
 
+import { supabase } from "../config/supabase.js";
 import { createRequest } from "../services/request.service.js";
 
 export const createRequestController = async (req, res) => {
@@ -21,7 +22,7 @@ export const createRequestController = async (req, res) => {
 			.eq("id", vendor_id)
 			.single();
 
-		if (vendor.vendor_status !== "active") {
+		if (!vendor || vendor.vendor_status !== "active") {
 			return res.status(400).json({
 				success: false,
 				error: "Vendor unavailable",

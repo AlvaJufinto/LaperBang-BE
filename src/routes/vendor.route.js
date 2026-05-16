@@ -2,7 +2,11 @@
 
 import express from "express";
 
-import { updateVendorLocationController } from "../controllers/vendor.controller.js";
+import {
+	getNearbyVendorsController,
+	updateVendorLocationController,
+	updateVendorStatusController,
+} from "../controllers/vendor.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 

@@ -1,6 +1,6 @@
 /** @format */
 
-import swaggerJsdoc from "swagger-jsdoc";
+import swaggerJsdoc from 'swagger-jsdoc';
 
 const options = {
 	definition: {
@@ -22,6 +22,6 @@ const options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-console.log("Swagger paths:", Object.keys(swaggerSpec.paths || {}));
+//console.log("Swagger paths:", Object.keys(swaggerSpec.paths || {}));
 
 export default swaggerSpec;

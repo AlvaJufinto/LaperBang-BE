@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "LaperBang API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credential\": \"string\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clusters",
+      "item": [
+        {
+          "name": "Run Clustering",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/clusters/run",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clusters", "run"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Requests",
+      "item": [
+        {
+          "name": "Create Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "requests"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendor_id\": \"uuid-vendor-id\",\n  \"lat\": -6.2,\n  \"lng\": 106.816666\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vendors",
+      "item": [
+        {
+          "name": "Update Live Location",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/vendors/location",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", "location"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": -6.2,\n  \"lng\": 106.816666\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Nearby Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/vendors/nearby?lat=-6.2&lng=106.8&radius=5000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", "nearby"],
+              "query": [
+                { "key": "lat", "value": "-6.2" },
+                { "key": "lng", "value": "106.8" },
+                { "key": "radius", "value": "5000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vendor Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/vendors/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

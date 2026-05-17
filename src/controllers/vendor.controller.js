@@ -4,18 +4,25 @@ import {
 	getNearbyVendors,
 	updateVendorLocation,
 	updateVendorStatus,
-} from "../services/vendor.service.js";
+} from '../services/vendor.service.js';
 
 export const updateVendorLocationController = async (req, res) => {
 	try {
-		const vendor_id = req.user.user_id;
-
+		const vendor_id = req.user.id || req.user.user_id;
 		const { lat, lng } = req.body;
 
 		if (typeof lat !== "number" || typeof lng !== "number") {
 			return res.status(400).json({
 				success: false,
 				error: "Invalid coordinates",
+			});
+		}
+
+		// range validation (IMPORTANT)
+		if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+			return res.status(400).json({
+				success: false,
+				error: "Coordinates out of range",
 			});
 		}
 
@@ -27,7 +34,7 @@ export const updateVendorLocationController = async (req, res) => {
 
 		return res.json({
 			success: true,
-			data: result[0],
+			data: result?.[0],
 		});
 	} catch (err) {
 		return res.status(500).json({
@@ -36,10 +43,10 @@ export const updateVendorLocationController = async (req, res) => {
 		});
 	}
 };
-
 export const getNearbyVendorsController = async (req, res) => {
 	try {
 		const { lat, lng, radius } = req.query;
+
 		if (!lat || !lng) {
 			return res.status(400).json({
 				success: false,
@@ -56,15 +63,21 @@ export const getNearbyVendorsController = async (req, res) => {
 				error: "Invalid coordinates",
 			});
 		}
+
 		const vendors = await getNearbyVendors({
 			lat: latNum,
 			lng: lngNum,
 			radius: Number(radius) || 5000,
 		});
 
+		// FILTER penting untuk LaperBang
+		const activeVendors = vendors.filter(
+			(v) => v.role === "vendor" && v.vendor_status === "active",
+		);
+
 		return res.json({
 			success: true,
-			data: vendors,
+			data: activeVendors,
 		});
 	} catch (err) {
 		return res.status(500).json({
@@ -76,14 +89,22 @@ export const getNearbyVendorsController = async (req, res) => {
 
 export const updateVendorStatusController = async (req, res) => {
 	try {
-		const vendor_id = req.user.user_id;
+		if (req.user.role !== "vendor") {
+			return res.status(403).json({
+				success: false,
+				error: "Only vendors allowed",
+			});
+		}
 
+		const vendor_id = req.user.id || req.user.user_id;
 		const { status } = req.body;
 
-		if (!status) {
+		const allowedStatus = ["active", "moving", "idle", "close"];
+
+		if (!allowedStatus.includes(status)) {
 			return res.status(400).json({
 				success: false,
-				error: "Status is required",
+				error: "Invalid status",
 			});
 		}
 
@@ -94,7 +115,7 @@ export const updateVendorStatusController = async (req, res) => {
 
 		return res.json({
 			success: true,
-			data: result,
+			data: result?.[0],
 		});
 	} catch (err) {
 		return res.status(500).json({

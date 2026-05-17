@@ -1,31 +1,62 @@
 /** @format */
 
-import { supabase } from "../config/supabase.js";
-import { createRequest } from "../services/request.service.js";
+import { supabase } from '../config/supabase.js';
+import { createRequest } from '../services/request.service.js';
 
+// ikuti vendor
 export const createRequestController = async (req, res) => {
 	try {
 		const { vendor_id, lat, lng } = req.body;
 
-		const user_id = req.user.user_id;
+		const user_id = req.user.id || req.user.user_id;
 
-		if (!vendor_id || !lat || !lng) {
+		if (!vendor_id || lat == null || lng == null) {
 			return res.status(400).json({
 				success: false,
 				error: "Missing fields",
 			});
 		}
 
-		const { data: vendor } = await supabase
+		// validate lat/lng numeric
+		if (typeof lat !== "number" || typeof lng !== "number") {
+			return res.status(400).json({
+				success: false,
+				error: "Invalid coordinates",
+			});
+		}
+
+		// get vendor
+		const { data: vendor, error } = await supabase
 			.from("users")
 			.select("*")
 			.eq("id", vendor_id)
 			.single();
 
-		if (!vendor || vendor.vendor_status !== "active") {
+		if (error || !vendor) {
+			return res.status(404).json({
+				success: false,
+				error: "Vendor not found",
+			});
+		}
+
+		if (vendor.role !== "vendor") {
+			return res.status(400).json({
+				success: false,
+				error: "Target is not a vendor",
+			});
+		}
+
+		if (vendor.vendor_status !== "active") {
 			return res.status(400).json({
 				success: false,
 				error: "Vendor unavailable",
+			});
+		}
+
+		if (vendor_id === user_id) {
+			return res.status(400).json({
+				success: false,
+				error: "Invalid operation",
 			});
 		}
 
@@ -38,7 +69,7 @@ export const createRequestController = async (req, res) => {
 
 		return res.json({
 			success: true,
-			data: result[0],
+			data: result?.[0],
 		});
 	} catch (err) {
 		return res.status(500).json({

@@ -1,5 +1,7 @@
 /** @format */
 
+import { runClustering } from '../services/cluster.service.js';
+
 export const runClusterController = async (req, res) => {
 	try {
 		await runClustering();

@@ -1,36 +1,58 @@
 /** @format */
 
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
-export const authMiddleware = (req, res, next) => {
+import { supabase } from '../config/supabase.js';
+
+export const authMiddleware = async (req, res, next) => {
 	try {
 		const authHeader = req.headers.authorization;
 
-		if (!authHeader) {
+		if (!authHeader || !authHeader.startsWith("Bearer ")) {
 			return res.status(401).json({
 				success: false,
-				error: "No authorization header",
+				error: "Missing or invalid authorization header",
 			});
 		}
 
 		const token = authHeader.split(" ")[1];
 
-		if (!token) {
+		let decoded;
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SECRET);
+		} catch (err) {
 			return res.status(401).json({
 				success: false,
-				error: "No token provided",
+				error: "Token expired or invalid",
 			});
 		}
 
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		// ambil user fresh dari DB (penting)
+		const { data: user, error } = await supabase
+			.from("users")
+			.select("*")
+			.eq("id", decoded.user_id)
+			.single();
 
-		req.user = decoded;
+		if (error || !user) {
+			return res.status(401).json({
+				success: false,
+				error: "User not found",
+			});
+		}
+
+		req.user = {
+			id: user.id,
+			email: user.email,
+			role: user.role,
+			vendor_status: user.vendor_status,
+		};
 
 		next();
 	} catch (err) {
-		return res.status(401).json({
+		return res.status(500).json({
 			success: false,
-			error: "Invalid token",
+			error: "Auth middleware error",
 		});
 	}
 };

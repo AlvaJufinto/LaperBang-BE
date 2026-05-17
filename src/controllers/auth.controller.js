@@ -1,71 +1,83 @@
 /** @format */
 
-import { OAuth2Client } from "google-auth-library";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
-import { supabase } from "../config/supabase.js";
+import { supabase } from '../config/supabase.js';
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-export const googleLoginController = async (req, res) => {
+export const registerController = async (req, res) => {
 	try {
-		const { credential } = req.body;
+		const { email, password, role } = req.body;
 
-		if (!credential) {
+		if (!email || !password || !role) {
 			return res.status(400).json({
 				success: false,
-				error: "Missing Google credential",
+				error: "Missing fields",
 			});
 		}
 
-		if (!process.env.JWT_SECRET || !process.env.GOOGLE_CLIENT_ID) {
-			return res.status(500).json({
-				success: false,
-				error: "Server misconfigured",
-			});
-		}
+		const hashedPassword = await bcrypt.hash(password, 10);
 
-		const ticket = await client.verifyIdToken({
-			idToken: credential,
-			audience: process.env.GOOGLE_CLIENT_ID,
-		});
-
-		const payload = ticket.getPayload();
-
-		if (!payload?.email) {
-			return res.status(400).json({
-				success: false,
-				error: "Invalid Google token",
-			});
-		}
-
-		const { email, name } = payload;
-
-		let { data: user, error } = await supabase
+		const { data: user, error } = await supabase
 			.from("users")
-			.select("*")
-			.eq("email", email)
-			.maybeSingle();
+			.insert({
+				email,
+				password: hashedPassword,
+				role,
+				vendor_status: role === "vendor" ? "idle" : null,
+				additional_info: {},
+			})
+			.select()
+			.single();
 
 		if (error) throw error;
 
-		if (!user) {
-			const { data: newUser, error: insertError } = await supabase
-				.from("users")
-				.upsert(
-					{
-						email,
-						name,
-						role: "consumer",
-					},
-					{ onConflict: "email" },
-				)
-				.select()
-				.single();
+		const token = jwt.sign(
+			{
+				user_id: user.id,
+				email: user.email,
+				role: user.role,
+			},
+			process.env.JWT_SECRET,
+			{ expiresIn: "7d" },
+		);
 
-			if (insertError) throw insertError;
+		return res.json({
+			success: true,
+			data: { user, token },
+		});
+	} catch (err) {
+		return res.status(500).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
 
-			user = newUser;
+export const loginController = async (req, res) => {
+	try {
+		const { email, password } = req.body;
+
+		const { data: user, error } = await supabase
+			.from("users")
+			.select("*")
+			.eq("email", email)
+			.single();
+
+		if (error || !user) {
+			return res.status(401).json({
+				success: false,
+				error: "Invalid credentials",
+			});
+		}
+
+		const isValid = await bcrypt.compare(password, user.password);
+
+		if (!isValid) {
+			return res.status(401).json({
+				success: false,
+				error: "Invalid credentials",
+			});
 		}
 
 		const token = jwt.sign(
@@ -81,6 +93,65 @@ export const googleLoginController = async (req, res) => {
 		return res.json({
 			success: true,
 			data: { user, token },
+		});
+	} catch (err) {
+		return res.status(500).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
+
+export const updateProfileController = async (req, res) => {
+	try {
+		const userId = req.user.user_id;
+		const { name, additional_info, vendor_status } = req.body;
+
+		const { data, error } = await supabase
+			.from("users")
+			.update({
+				name,
+				additional_info,
+				vendor_status,
+			})
+			.eq("id", userId)
+			.select()
+			.single();
+
+		if (error) throw error;
+
+		return res.json({
+			success: true,
+			data,
+		});
+	} catch (err) {
+		return res.status(500).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
+
+export const meController = async (req, res) => {
+	try {
+		const userId = req.user.user_id;
+
+		const { data: user, error } = await supabase
+			.from("users")
+			.select("*")
+			.eq("id", userId)
+			.single();
+
+		if (error || !user) {
+			return res.status(404).json({
+				success: false,
+				error: "User not found",
+			});
+		}
+
+		return res.json({
+			success: true,
+			data: user,
 		});
 	} catch (err) {
 		return res.status(500).json({

@@ -1,12 +1,52 @@
 /** @format */
 
 /**
- * @swagger
- * /api/v1/auth/google:
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *           nullable: true
+ *         email:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [consumer, vendor]
+ *         vendor_status:
+ *           type: string
+ *           nullable: true
+ *         additional_info:
+ *           type: object
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *
+ *     AuthResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *         data:
+ *           type: object
+ *           properties:
+ *             user:
+ *               $ref: '#/components/schemas/User'
+ *             token:
+ *               type: string
+ */
+
+/**
+ * @openapi
+ * /auth/register:
  *   post:
- *     summary: Google login
- *     tags: [Auth]
- *     description: Login atau register user menggunakan Google ID Token
+ *     tags:
+ *       - Auth
+ *     summary: Register user baru
  *     requestBody:
  *       required: true
  *       content:
@@ -14,14 +54,77 @@
  *           schema:
  *             type: object
  *             required:
- *               - credential
+ *               - email
+ *               - password
+ *               - role
  *             properties:
- *               credential:
+ *               email:
  *                 type: string
- *                 description: Google ID token dari frontend
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               role:
+ *                 type: string
+ *                 enum: [consumer, vendor]
  *     responses:
  *       200:
- *         description: Login success
+ *         description: Success register
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Missing fields
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Login user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @openapi
+ * /auth/me:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     summary: Ambil data user login saat ini
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User data
  *         content:
  *           application/json:
  *             schema:
@@ -30,24 +133,68 @@
  *                 success:
  *                   type: boolean
  *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       type: object
- *                     token:
- *                       type: string
- *       400:
- *         description: Bad request (missing credential / invalid token)
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: User not found
  *       500:
  *         description: Server error
  */
 
-import express from "express";
+/**
+ * @openapi
+ * /auth/profile:
+ *   put:
+ *     tags:
+ *       - Auth
+ *     summary: Update profile user
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               vendor_status:
+ *                 type: string
+ *                 enum: [active, moving, idle, close]
+ *               additional_info:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       500:
+ *         description: Server error
+ */
 
-import { googleLoginController } from "../controllers/auth.controller.js";
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
+import express from 'express';
+
+import {
+	loginController,
+	meController,
+	registerController,
+	updateProfileController,
+} from '../controllers/auth.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.post("/google", googleLoginController);
+router.post("/register", registerController);
+router.post("/login", loginController);
+router.put("/profile", authMiddleware, updateProfileController);
+router.get("/me", authMiddleware, meController);
 
 export default router;

@@ -5,15 +5,15 @@ import { supabase } from "../config/supabase.js";
 export const updateVendorLocation = async ({ vendor_id, lat, lng }) => {
 	// cek apakah location vendor sudah ada
 	const { data: existing } = await supabase
-		.from("vendor_locations")
+		.from("live_locations")
 		.select("*")
-		.eq("vendor_id", vendor_id)
+		.eq("user_id", vendor_id)
 		.single();
 
 	// update
 	if (existing) {
 		const { data, error } = await supabase
-			.from("vendor_locations")
+			.from("live_locations")
 			.update({
 				location: {
 					type: "Point",
@@ -21,7 +21,7 @@ export const updateVendorLocation = async ({ vendor_id, lat, lng }) => {
 				},
 				updated_at: new Date(),
 			})
-			.eq("vendor_id", vendor_id)
+			.eq("user_id", vendor_id)
 			.select();
 
 		if (error) throw error;
@@ -31,10 +31,10 @@ export const updateVendorLocation = async ({ vendor_id, lat, lng }) => {
 
 	// create
 	const { data, error } = await supabase
-		.from("vendor_locations")
+		.from("live_locations")
 		.insert([
 			{
-				vendor_id,
+				user_id: vendor_id,
 				location: {
 					type: "Point",
 					coordinates: [lng, lat],

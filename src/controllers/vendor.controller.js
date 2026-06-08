@@ -4,7 +4,7 @@ import {
 	getNearbyVendors,
 	updateVendorLocation,
 	updateVendorStatus,
-} from '../services/vendor.service.js';
+} from "../services/vendor.service.js";
 
 export const updateVendorLocationController = async (req, res) => {
 	try {
@@ -116,6 +116,30 @@ export const updateVendorStatusController = async (req, res) => {
 		return res.json({
 			success: true,
 			data: result?.[0],
+		});
+	} catch (err) {
+		return res.status(500).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
+
+export const getVendorDetail = async (req, res) => {
+	try {
+		const { vendor_id } = req.params;
+
+		const { data, error } = await supabase
+			.from("users")
+			.eq("id", vendor_id)
+			.select()
+			.single();
+
+		if (error) throw error;
+
+		return res.json({
+			success: true,
+			data,
 		});
 	} catch (err) {
 		return res.status(500).json({

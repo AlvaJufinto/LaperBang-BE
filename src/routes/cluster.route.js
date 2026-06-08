@@ -37,10 +37,24 @@
 
 import express from "express";
 
-import { runClusterController } from "../controllers/cluster.controller.js";
+import {
+	acceptClusterController,
+	rejectClusterController,
+	runClusterController,
+} from "../controllers/cluster.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
 router.post("/run", runClusterController);
+
+router.post(
+	"/:cluster_id/accept",
+	authMiddleware,
+	roleMiddleware("vendor"),
+	acceptClusterController,
+);
+
+router.post("/:cluster_id/reject", authMiddleware, rejectClusterController);
 
 export default router;

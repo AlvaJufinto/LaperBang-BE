@@ -16,11 +16,11 @@ http://localhost:3000
 
 # Auth
 
-## Google Login
+## Login
 
-**POST** `/api/v1/auth/google`
+**POST** `/api/v1/auth/register`
 
-Login atau register user menggunakan Google ID Token.
+Login with username and password.
 
 ### Request Body
 
@@ -30,262 +30,53 @@ Login atau register user menggunakan Google ID Token.
 }
 ```
 
-### Responses
+## Register
 
-**200 - Success**
+**POST** `/api/v1/auth/register`
 
-```json
-{
-	"success": true,
-	"data": {
-		"user": {},
-		"token": "string"
-	}
-}
-```
+## Edit Profile
 
-**400 - Bad Request**
+**PUT** `/api/v1/auth/profile`
 
-```json
-{
-	"success": false,
-	"error": "missing or invalid credential"
-}
-```
+## Get Self Profile
 
-**500 - Server Error**
-
-```json
-{
-	"success": false,
-	"error": "internal server error"
-}
-```
+**GET** `/api/v1/auth/me`
 
 ---
 
-# Clusters
+# Consumer
 
-## Run Clustering
-
-**POST** `/api/v1/clusters/run`
-
-Menjalankan proses clustering demand untuk membentuk hotspot.
-
-### Responses
-
-**200 - Success**
-
-```json
-{
-	"success": true,
-	"message": "Clustering completed"
-}
-```
-
-**500 - Error**
-
-```json
-{
-	"success": false,
-	"error": "string"
-}
-```
-
----
-
-# Requests
-
-## Create Request
+## Request (call) Vendor
 
 **POST** `/api/v1/requests`
 
-User membuat request ke vendor dengan lokasi realtime.
-
-### Request Body
-
-```json
-{
-	"vendor_id": "uuid-vendor-id",
-	"lat": -6.2,
-	"lng": 106.816666
-}
-```
-
-### Responses
-
-**200 - Created**
-
-```json
-{
-	"success": true,
-	"data": {}
-}
-```
-
-**400 - Validation Error**
-
-```json
-{
-	"success": false,
-	"error": "Missing fields or vendor unavailable"
-}
-```
-
-**500 - Server Error**
-
-```json
-{
-	"success": false,
-	"error": "internal server error"
-}
-```
-
----
-
-# Vendors
-
-## Update Live Location
-
-**PATCH** `/api/v1/vendors/location`
-
-Update posisi real-time vendor.
-
-### Request Body
-
-```json
-{
-	"lat": -6.2,
-	"lng": 106.816666
-}
-```
-
-### Responses
-
-**200 - Success**
-
-```json
-{
-	"success": true,
-	"message": "Location updated"
-}
-```
-
-**400 - Invalid Input**
-
-```json
-{
-	"success": false,
-	"error": "invalid coordinates"
-}
-```
-
-**500 - Server Error**
-
-```json
-{
-	"success": false,
-	"error": "internal server error"
-}
-```
-
----
-
-## Get Nearby Vendors
+## Get Nearby Vendor Location
 
 **GET** `/api/v1/vendors/nearby`
 
-Mengambil vendor terdekat berdasarkan lokasi user.
-
-### Query Parameters
-
-- `lat` (required): number
-- `lng` (required): number
-- `radius` (optional): number (meter, default 5000)
-
-### Example
-
-```
-/api/v1/vendors/nearby?lat=-6.2&lng=106.8&radius=5000
-```
-
-### Responses
-
-**200 - Success**
-
-```json
-{
-	"success": true,
-	"data": [{}]
-}
-```
-
-**500 - Server Error**
-
-```json
-{
-	"success": false,
-	"error": "internal server error"
-}
-```
-
 ---
+
+# Vendor
+
+## Update Vendor Location
+
+**PATCH** `/api/v1/vendors/location`
 
 ## Update Vendor Status
 
 **PATCH** `/api/v1/vendors/status`
 
-Mengubah status vendor.
+## Accept Available Cluster
 
-### Request Body
+**POST** `/api/v1/clusters/:cluster_id/accept`
 
-```json
-{
-	"status": "active"
-}
-```
+## Reject Available Cluster
 
-### Valid Status Example
-
-- active
-- inactive
-- busy
-- offline
-
-### Responses
-
-**200 - Success**
-
-```json
-{
-	"success": true,
-	"message": "Status updated"
-}
-```
-
-**400 - Bad Request**
-
-```json
-{
-	"success": false,
-	"error": "missing status"
-}
-```
-
-**500 - Server Error**
-
-```json
-{
-	"success": false,
-	"error": "internal server error"
-}
-```
-
----
+**POST** `/api/v1/clusters/:cluster_id/reject`
 
 # System Flow
 
-1. User login via Google OAuth
+1. User Register or login
 2. User fetch nearby vendors
 3. User sends request to vendor
 4. Request masuk ke aggregation layer

@@ -132,4 +132,7 @@ router.patch(
 	roleMiddleware("vendor"),
 	updateVendorStatusController,
 );
+
+router.get("/:vendor_id//detail", authMiddleware);
+
 export default router;

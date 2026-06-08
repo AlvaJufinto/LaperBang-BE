@@ -131,8 +131,8 @@ export const getVendorDetail = async (req, res) => {
 
 		const { data, error } = await supabase
 			.from("users")
+			.select("*")
 			.eq("id", vendor_id)
-			.select()
 			.single();
 
 		if (error) throw error;

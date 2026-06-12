@@ -1,7 +1,7 @@
 /** @format */
 
 import { supabase } from "../config/supabase.js";
-import { followVendorService } from "../services/vendor-follow.service.js";
+import { followVendorControllerService } from "../services/vendor-follow.service.js";
 import {
 	getNearbyVendors,
 	updateVendorLocation,
@@ -133,7 +133,7 @@ export const updateVendorStatusController = async (req, res) => {
 	}
 };
 
-export const getVendorDetail = async (req, res) => {
+export const getVendorDetailController = async (req, res) => {
 	try {
 		const { vendor_id } = req.params;
 
@@ -157,7 +157,7 @@ export const getVendorDetail = async (req, res) => {
 	}
 };
 
-export const followVendor = async (req, res) => {
+export const followVendorController = async (req, res) => {
 	try {
 		if (req.user.role !== "customer") {
 			return res.status(403).json({
@@ -167,29 +167,46 @@ export const followVendor = async (req, res) => {
 		}
 
 		const customer_id = req.user.id || req.user.user_id;
-
 		const { vendor_id } = req.params;
 
-		const result = await followVendorService({
+		const result = await followVendorControllerService({
 			customer_id,
 			vendor_id,
-		});
-
-		pusher.trigger(`vendor.${vendor_id}`, "vendor.location.updated", {
-			vendor_id,
-			lat,
-			lng,
-		});
-
-		pusher.trigger(`vendor.${vendor_id}`, "vendor.status.updated", {
-			vendor_id,
-			status,
 		});
 
 		return res.json({
 			success: true,
 			data: result,
 		});
+	} catch (err) {
+		return res.status(400).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
+
+export const updateVendorLocationController = async (req, res) => {
+	try {
+		if (req.user.role !== "vendor") {
+			return res.status(403).json({
+				success: false,
+				error: "Only vendor allowed",
+			});
+		}
+
+		const vendor_id = req.user.id;
+		const { lat, lng } = req.body;
+
+		await supabase.from("users").update({ lat, lng }).eq("id", vendor_id);
+
+		pusher.trigger(`vendor.${vendor_id}`, "location.updated", {
+			vendor_id,
+			lat,
+			lng,
+		});
+
+		return res.json({ success: true });
 	} catch (err) {
 		return res.status(400).json({
 			success: false,

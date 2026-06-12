@@ -2,7 +2,7 @@
 import express from "express";
 
 import {
-	followVendor,
+	followVendorController,
 	getNearbyVendorsController,
 	updateVendorLocationController,
 	updateVendorStatusController,
@@ -30,6 +30,11 @@ router.patch(
 
 router.get("/:vendor_id//detail", authMiddleware);
 
-router.post("/vendors/:vendor_id/follow", authMiddleware, followVendor);
+router.post(
+	"/vendors/:vendor_id/follow",
+	authMiddleware,
+	followVendorController,
+);
+router.put("/vendor/location", authMiddleware, updateVendorLocationController);
 
 export default router;

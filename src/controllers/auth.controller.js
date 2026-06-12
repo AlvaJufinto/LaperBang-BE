@@ -162,3 +162,10 @@ export const meController = async (req, res) => {
 		});
 	}
 };
+
+export const logoutController = async (req, res) => {
+	return res.status(200).json({
+		success: true,
+		message: "Logout success. Please remove token on client.",
+	});
+};

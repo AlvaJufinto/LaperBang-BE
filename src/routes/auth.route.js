@@ -180,15 +180,16 @@
  *       bearerFormat: JWT
  */
 
-import express from 'express';
+import express from "express";
 
 import {
 	loginController,
+	logoutController,
 	meController,
 	registerController,
 	updateProfileController,
-} from '../controllers/auth.controller.js';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+} from "../controllers/auth.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -196,5 +197,6 @@ router.post("/register", registerController);
 router.post("/login", loginController);
 router.put("/profile", authMiddleware, updateProfileController);
 router.get("/me", authMiddleware, meController);
+router.post("/logout", authMiddleware, logoutController);
 
 export default router;

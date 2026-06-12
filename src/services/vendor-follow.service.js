@@ -2,7 +2,10 @@
 
 import { supabase } from "../config/supabase.js";
 
-export const followVendorService = async ({ customer_id, vendor_id }) => {
+export const followVendorControllerService = async ({
+	customer_id,
+	vendor_id,
+}) => {
 	const { data: vendor, error: vendorError } = await supabase
 		.from("users")
 		.select("role, vendor_status")
@@ -21,10 +24,15 @@ export const followVendorService = async ({ customer_id, vendor_id }) => {
 		throw new Error("Vendor is not available for follow");
 	}
 
-	const { data, error } = await supabase.from("vendor_follows").insert({
-		customer_id,
-		vendor_id,
-	});
+	const { data, error } = await supabase
+		.from("vendor_follows")
+		.insert({
+			customer_id,
+			vendor_id,
+		})
+		.select()
+		.single();
+
 	select().single();
 
 	if (error) throw error;

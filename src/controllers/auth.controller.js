@@ -1,15 +1,15 @@
 /** @format */
 
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-import { supabase } from '../config/supabase.js';
+import { supabase } from "../config/supabase.js";
 
 export const registerController = async (req, res) => {
 	try {
-		const { email, password, role } = req.body;
+		const { name, email, password, role } = req.body;
 
-		if (!email || !password || !role) {
+		if (!name || !email || !password || !role) {
 			return res.status(400).json({
 				success: false,
 				error: "Missing fields",
@@ -21,6 +21,7 @@ export const registerController = async (req, res) => {
 		const { data: user, error } = await supabase
 			.from("users")
 			.insert({
+				name,
 				email,
 				password: hashedPassword,
 				role,

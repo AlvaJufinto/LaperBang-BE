@@ -2,7 +2,7 @@
 
 import clustering from "density-clustering";
 
-import { supabase } from "../../config/supabase.js";
+import { supabase } from "../config/supabase.js";
 import { pusher } from "../lib/pusher.js";
 import { emitClusterUpdated } from "../services/cluster-event-service.js";
 

@@ -1,5 +1,6 @@
 /** @format */
 
+import { supabase } from "../config/supabase.js";
 import { followVendorService } from "../services/vendor-follow.service.js";
 import {
 	getNearbyVendors,
@@ -65,15 +66,21 @@ export const getNearbyVendorsController = async (req, res) => {
 			});
 		}
 
+		const { data, error } = await supabase
+			.from("live_locations")
+			.select("*")
+			.limit(1);
+
 		const vendors = await getNearbyVendors({
 			lat: latNum,
 			lng: lngNum,
 			radius: Number(radius) || 5000,
 		});
 
-		// FILTER penting untuk LaperBang
 		const activeVendors = vendors.filter(
-			(v) => v.role === "vendor" && v.vendor_status !== "close",
+			(v) =>
+				v.user.role === "vendor" &&
+				(v.user.vendor_status !== "close" || v.user.vendor_status !== "moving"),
 		);
 
 		return res.json({

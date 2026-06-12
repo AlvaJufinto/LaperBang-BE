@@ -49,7 +49,7 @@ export const updateVendorLocation = async ({ vendor_id, lat, lng }) => {
 };
 
 export const getNearbyVendors = async ({ lat, lng, radius = 2000 }) => {
-	const { data, error } = await supabase.rpc("get_nearby_vendors", {
+	const { data: vendors, error } = await supabase.rpc("get_nearby_vendors", {
 		user_lat: lat,
 		user_lng: lng,
 		radius_meters: radius,
@@ -57,7 +57,19 @@ export const getNearbyVendors = async ({ lat, lng, radius = 2000 }) => {
 
 	if (error) throw error;
 
-	return data;
+	const vendorIds = vendors.map((v) => v.vendor_id);
+
+	const { data: users, error: userError } = await supabase
+		.from("users")
+		.select("*")
+		.in("id", vendorIds);
+
+	if (userError) throw userError;
+
+	return vendors.map((v) => ({
+		...v,
+		user: users.find((u) => u.id === v.vendor_id),
+	}));
 };
 
 export const updateVendorStatus = async ({ vendor_id, status }) => {

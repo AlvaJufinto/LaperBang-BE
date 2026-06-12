@@ -1,6 +1,6 @@
 /** @format */
 
-import { runVendorClustering } from "../services/cluster.service.js";
+import { runClustering } from "../services/cluster.service.js";
 
 const pendingVendors = new Map();
 
@@ -14,7 +14,7 @@ export const enqueueClusterJob = async (vendor_id) => {
 
 	const timeout = setTimeout(async () => {
 		try {
-			await runVendorClustering(vendor_id);
+			await runClustering(vendor_id);
 		} catch (err) {
 			console.error(err);
 		} finally {

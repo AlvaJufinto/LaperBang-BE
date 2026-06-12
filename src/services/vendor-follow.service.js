@@ -1,6 +1,6 @@
 /** @format */
 
-import { supabase } from "../config/supabase";
+import { supabase } from "../config/supabase.js";
 
 export const followVendorService = async ({ customer_id, vendor_id }) => {
 	const { data: vendor, error: vendorError } = await supabase

@@ -1,6 +1,6 @@
 /** @format */
 
-import { pusher } from "../../config/pusher.js";
+import { pusher } from "../config/pusher.js";
 
 export const emitClusterUpdated = async ({ cluster }) => {
 	await pusher.trigger(

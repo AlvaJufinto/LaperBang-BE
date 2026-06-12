@@ -2,10 +2,7 @@
 
 import { supabase } from "../config/supabase.js";
 
-export const followVendorControllerService = async ({
-	customer_id,
-	vendor_id,
-}) => {
+export const followVendorService = async ({ customer_id, vendor_id }) => {
 	const { data: vendor, error: vendorError } = await supabase
 		.from("users")
 		.select("role, vendor_status")

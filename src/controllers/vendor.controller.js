@@ -1,50 +1,45 @@
 /** @format */
 
 import { supabase } from "../config/supabase.js";
-import { followVendorControllerService } from "../services/vendor-follow.service.js";
+import { followVendorService } from "../services/vendor-follow.service.js";
 import {
 	getNearbyVendors,
-	updateVendorLocation,
 	updateVendorStatus,
 } from "../services/vendor.service.js";
 
+const lastUpdate = new Map();
+
 export const updateVendorLocationController = async (req, res) => {
-	try {
-		const vendor_id = req.user.id || req.user.user_id;
-		const { lat, lng } = req.body;
+	const vendor_id = req.user.id;
+	const { lat, lng } = req.body;
 
-		if (typeof lat !== "number" || typeof lng !== "number") {
-			return res.status(400).json({
-				success: false,
-				error: "Invalid coordinates",
-			});
-		}
+	const now = Date.now();
+	const last = lastUpdate.get(vendor_id) || 0;
 
-		// range validation (IMPORTANT)
-		if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-			return res.status(400).json({
-				success: false,
-				error: "Coordinates out of range",
-			});
-		}
-
-		const result = await updateVendorLocation({
-			vendor_id,
-			lat,
-			lng,
-		});
-
+	if (now - last < 3000) {
 		return res.json({
 			success: true,
-			data: result?.[0],
-		});
-	} catch (err) {
-		return res.status(500).json({
-			success: false,
-			error: err.message,
+			skipped: true,
 		});
 	}
+
+	lastUpdate.set(vendor_id, now);
+
+	await supabase.from("live_locations").upsert({
+		user_id: vendor_id,
+		location: { lat, lng },
+		updated_at: new Date(),
+	});
+
+	pusher.trigger(`vendor.${vendor_id}`, "location.updated", {
+		vendor_id,
+		lat,
+		lng,
+	});
+
+	return res.json({ success: true });
 };
+
 export const getNearbyVendorsController = async (req, res) => {
 	try {
 		const { lat, lng, radius } = req.query;
@@ -169,7 +164,7 @@ export const followVendorController = async (req, res) => {
 		const customer_id = req.user.id || req.user.user_id;
 		const { vendor_id } = req.params;
 
-		const result = await followVendorControllerService({
+		const result = await followVendorService({
 			customer_id,
 			vendor_id,
 		});
@@ -178,35 +173,6 @@ export const followVendorController = async (req, res) => {
 			success: true,
 			data: result,
 		});
-	} catch (err) {
-		return res.status(400).json({
-			success: false,
-			error: err.message,
-		});
-	}
-};
-
-export const updateVendorLocationController = async (req, res) => {
-	try {
-		if (req.user.role !== "vendor") {
-			return res.status(403).json({
-				success: false,
-				error: "Only vendor allowed",
-			});
-		}
-
-		const vendor_id = req.user.id;
-		const { lat, lng } = req.body;
-
-		await supabase.from("users").update({ lat, lng }).eq("id", vendor_id);
-
-		pusher.trigger(`vendor.${vendor_id}`, "location.updated", {
-			vendor_id,
-			lat,
-			lng,
-		});
-
-		return res.json({ success: true });
 	} catch (err) {
 		return res.status(400).json({
 			success: false,

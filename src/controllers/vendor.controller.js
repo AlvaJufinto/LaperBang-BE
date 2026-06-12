@@ -1,5 +1,6 @@
 /** @format */
 
+import { followVendorService } from "../services/vendor-follow.service.js";
 import {
 	getNearbyVendors,
 	updateVendorLocation,
@@ -72,7 +73,7 @@ export const getNearbyVendorsController = async (req, res) => {
 
 		// FILTER penting untuk LaperBang
 		const activeVendors = vendors.filter(
-			(v) => v.role === "vendor" && v.vendor_status === "active",
+			(v) => v.role === "vendor" && v.vendor_status !== "close",
 		);
 
 		return res.json({
@@ -143,6 +144,47 @@ export const getVendorDetail = async (req, res) => {
 		});
 	} catch (err) {
 		return res.status(500).json({
+			success: false,
+			error: err.message,
+		});
+	}
+};
+
+export const followVendor = async (req, res) => {
+	try {
+		if (req.user.role !== "customer") {
+			return res.status(403).json({
+				success: false,
+				error: "Only customer allowed",
+			});
+		}
+
+		const customer_id = req.user.id || req.user.user_id;
+
+		const { vendor_id } = req.params;
+
+		const result = await followVendorService({
+			customer_id,
+			vendor_id,
+		});
+
+		pusher.trigger(`vendor.${vendor_id}`, "vendor.location.updated", {
+			vendor_id,
+			lat,
+			lng,
+		});
+
+		pusher.trigger(`vendor.${vendor_id}`, "vendor.status.updated", {
+			vendor_id,
+			status,
+		});
+
+		return res.json({
+			success: true,
+			data: result,
+		});
+	} catch (err) {
+		return res.status(400).json({
 			success: false,
 			error: err.message,
 		});

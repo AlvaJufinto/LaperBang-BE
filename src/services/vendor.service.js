@@ -48,7 +48,7 @@ export const updateVendorLocation = async ({ vendor_id, lat, lng }) => {
 	return data;
 };
 
-export const getNearbyVendors = async ({ lat, lng, radius = 5000 }) => {
+export const getNearbyVendors = async ({ lat, lng, radius = 2000 }) => {
 	const { data, error } = await supabase.rpc("get_nearby_vendors", {
 		user_lat: lat,
 		user_lng: lng,

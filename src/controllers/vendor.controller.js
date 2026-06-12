@@ -1,5 +1,6 @@
 /** @format */
 
+import { pusher } from "../config/pusher.js";
 import { supabase } from "../config/supabase.js";
 import { followVendorService } from "../services/vendor-follow.service.js";
 import {
@@ -12,6 +13,14 @@ const lastUpdate = new Map();
 export const updateVendorLocationController = async (req, res) => {
 	const vendor_id = req.user.id;
 	const { lat, lng } = req.body;
+
+	// basic validation
+	if (typeof lat !== "number" || typeof lng !== "number") {
+		return res.status(400).json({
+			success: false,
+			error: "lat and lng must be numbers",
+		});
+	}
 
 	const now = Date.now();
 	const last = lastUpdate.get(vendor_id) || 0;
@@ -31,15 +40,23 @@ export const updateVendorLocationController = async (req, res) => {
 		updated_at: new Date(),
 	});
 
-	pusher.trigger(`vendor.${vendor_id}`, "location.updated", {
+	const channelId = `vendor.${vendor_id}`;
+	const eventName = "location.updated";
+
+	pusher.trigger(channelId, eventName, {
 		vendor_id,
 		lat,
 		lng,
 	});
 
-	return res.json({ success: true });
+	return res.status(200).json({
+		success: true,
+		data: {
+			channelId,
+			eventName,
+		},
+	});
 };
-
 export const getNearbyVendorsController = async (req, res) => {
 	try {
 		const { lat, lng, radius } = req.query;
@@ -174,6 +191,8 @@ export const followVendorController = async (req, res) => {
 			data: result,
 		});
 	} catch (err) {
+		console.log("🚀 ~ followVendorController ~ err:", err);
+
 		return res.status(400).json({
 			success: false,
 			error: err.message,

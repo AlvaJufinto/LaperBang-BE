@@ -30,8 +30,6 @@ export const followVendorService = async ({ customer_id, vendor_id }) => {
 		.select()
 		.single();
 
-	select().single();
-
 	if (error) throw error;
 
 	return data;

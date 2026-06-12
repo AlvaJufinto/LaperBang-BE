@@ -28,13 +28,8 @@ router.patch(
 	updateVendorStatusController,
 );
 
-router.get("/:vendor_id//detail", authMiddleware);
+router.get("/:vendor_id/detail", authMiddleware);
 
-router.post(
-	"/vendors/:vendor_id/follow",
-	authMiddleware,
-	followVendorController,
-);
-router.put("/vendor/location", authMiddleware, updateVendorLocationController);
+router.post("/:vendor_id/follow", authMiddleware, followVendorController);
 
 export default router;

@@ -2,8 +2,8 @@
 
 import clustering from "density-clustering";
 
+import { pusher } from "../config/pusher.js";
 import { supabase } from "../config/supabase.js";
-import { pusher } from "../lib/pusher.js";
 import { emitClusterUpdated } from "../services/cluster-event-service.js";
 
 const DBSCAN = clustering.DBSCAN;

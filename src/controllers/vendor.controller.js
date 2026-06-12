@@ -43,7 +43,7 @@ export const updateVendorLocationController = async (req, res) => {
 	const channelId = `vendor.${vendor_id}`;
 	const eventName = "location.updated";
 
-	pusher.trigger(channelId, eventName, {
+	const result = await pusher.trigger(channelId, eventName, {
 		vendor_id,
 		lat,
 		lng,

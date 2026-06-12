@@ -31,5 +31,6 @@ router.patch(
 router.get("/:vendor_id/detail", authMiddleware);
 
 router.post("/:vendor_id/follow", authMiddleware, followVendorController);
+router.put("/location", authMiddleware, updateVendorLocationController);
 
 export default router;

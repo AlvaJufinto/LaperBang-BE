@@ -23,10 +23,15 @@ export const followVendorService = async ({ customer_id, vendor_id }) => {
 
 	const { data, error } = await supabase
 		.from("vendor_follows")
-		.insert({
-			customer_id,
-			vendor_id,
-		})
+		.upsert(
+			{
+				customer_id,
+				vendor_id,
+			},
+			{
+				onConflict: "customer_id,vendor_id",
+			},
+		)
 		.select()
 		.single();
 

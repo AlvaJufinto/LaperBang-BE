@@ -136,7 +136,7 @@ export const updateProfileController = async (req, res) => {
 
 export const meController = async (req, res) => {
 	try {
-		const userId = req.user.user_id;
+		const userId = req.user.id;
 
 		const { data: user, error } = await supabase
 			.from("users")
@@ -151,7 +151,7 @@ export const meController = async (req, res) => {
 			});
 		}
 
-		return res.json({
+		return res.status(200).json({
 			success: true,
 			data: user,
 		});

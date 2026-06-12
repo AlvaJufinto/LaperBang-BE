@@ -7,7 +7,7 @@ import { supabase } from "../config/supabase.js";
 
 export const registerController = async (req, res) => {
 	try {
-		const { name, email, password, role } = req.body;
+		const { username, name, email, password, role } = req.body;
 
 		if (!name || !email || !password || !role) {
 			return res.status(400).json({
@@ -21,12 +21,13 @@ export const registerController = async (req, res) => {
 		const { data: user, error } = await supabase
 			.from("users")
 			.insert({
+				username,
 				name,
 				email,
 				password: hashedPassword,
 				role,
 				vendor_status: role === "vendor" ? "idle" : null,
-				additional_info: {},
+				vendor_additional_info: {},
 			})
 			.select()
 			.single();
@@ -43,7 +44,7 @@ export const registerController = async (req, res) => {
 			{ expiresIn: "7d" },
 		);
 
-		return res.json({
+		return res.status(200).json({
 			success: true,
 			data: { user, token },
 		});
@@ -91,7 +92,7 @@ export const loginController = async (req, res) => {
 			{ expiresIn: "7d" },
 		);
 
-		return res.json({
+		return res.status(200).json({
 			success: true,
 			data: { user, token },
 		});

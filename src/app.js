@@ -1,15 +1,15 @@
 /** @format */
 
-import cors from 'cors';
-import dotenv from 'dotenv';
-import express from 'express';
-import swaggerUi from 'swagger-ui-express';
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import swaggerUi from "swagger-ui-express";
 
-import authRoutes from './routes/auth.route.js';
-import clusterRoutes from './routes/cluster.route.js';
-import requestRoutes from './routes/request.route.js';
-import vendorRoutes from './routes/vendor.route.js';
-import swaggerSpec from './swagger.js';
+import authRoutes from "./routes/auth.route.js";
+import clusterRoutes from "./routes/cluster.route.js";
+import requestRoutes from "./routes/request.route.js";
+import vendorRoutes from "./routes/vendor.route.js";
+import swaggerSpec from "./swagger.js";
 
 dotenv.config();
 

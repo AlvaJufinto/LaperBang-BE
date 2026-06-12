@@ -122,7 +122,7 @@ export const updateProfileController = async (req, res) => {
 
 		if (error) throw error;
 
-		return res.json({
+		return res.status(200).json({
 			success: true,
 			data,
 		});
